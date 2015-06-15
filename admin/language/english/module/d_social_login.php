@@ -421,5 +421,5 @@ $_['text_instructions_full'] ='
           $(".nav-tabs a").tabs();
       </script>
 
-'
+';
 ?>
