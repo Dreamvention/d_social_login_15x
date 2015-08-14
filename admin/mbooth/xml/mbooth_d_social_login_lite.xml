@@ -4,7 +4,7 @@
     <description>Social login is a module that addes the ability to create an account in the webshop with a scoial network account and then login in by simply clicking a button. No need to remeber the password. It has Facebook, Paypal, Google+, Twitter, Linkeding, Vknontakte, Windows live, Tumblr and more</description>
     <type>module</type>
     <description>Adds social login buttons to opencart</description>
-    <version>2.5.0</version>
+    <version>2.6.0</version>
 	<opencart_version>1.5.1.3;1.5.2;1.5.3;1.5.4;1.5.5;1.5.6.4</opencart_version>
     <mbooth_version>1.1</mbooth_version>
     <author>Dreamvention</author>
@@ -42,6 +42,13 @@
 		<require>shopunity</require>
 	</required>
 	<updates>
+		<update version="2.6.0">
+		1. The customer can now login in with social logins even if his email is already regestered with the shop<br/>
+		2. Facebook Api fix.
+		</update>
+		<update version="2.5.1">
+		1. Fix telephone bug. !!!!!
+		</update>
 		<update version="2.5.0">
 		1. New version. 2.5.0. 
 		2. Customer groups
