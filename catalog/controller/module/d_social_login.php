@@ -50,6 +50,7 @@ class ControllerModuleDSocialLogin extends Controller {
       	//facebook fix
       	unset($this->session->data['HA::CONFIG']);
 		unset($this->session->data['HA::STORE']);
+  
 
 		$this->data = $data;
 
@@ -91,18 +92,26 @@ class ControllerModuleDSocialLogin extends Controller {
             // Redirect to the Login Page
             $this->response->redirect($this->redirect);
         }
+        
+        if($this->setting['provider'] == 'Facebook'){
+        	$this->setting['base_url']   = HTTP_SERVER . 'd_social_login.php';
+        }
+        
+        if($this->setting['provider'] == 'Live'){
+           	$this->setting['base_url']   = $this->config->get('config_secure') ? HTTPS_SERVER . 'd_social_login_live.php' : HTTP_SERVER . 'd_social_login_live.php';
+        }
 
         try{
 
 			$hybridauth = new Hybrid_Auth( $this->setting );
-			$hybridauth::$logger->info('d_social_login: Start authantication.');
+			Hybrid_Auth::$logger->info('d_social_login: Start authantication.');
 			$adapter = $hybridauth->authenticate( $this->setting['provider'] );  
-			$hybridauth::$logger->info('d_social_login: Start getUserProfile.');
+			Hybrid_Auth::$logger->info('d_social_login: Start getUserProfile.');
 			//get the user profile 
 			$profile = $adapter->getUserProfile();
 			$this->setting['profile'] = (array) $profile;
 
-			$hybridauth::$logger->info('d_social_login: got UserProfile.'.serialize($this->setting['profile']));
+			Hybrid_Auth::$logger->info('d_social_login: got UserProfile.'.serialize($this->setting['profile']));
 			$authentication_data = array(
                     'provider' => $this->setting['provider'],
                     'identifier' => $this->setting['profile']['identifier'],
@@ -129,13 +138,13 @@ class ControllerModuleDSocialLogin extends Controller {
                     'zip' => $this->setting['profile']['zip']
 				);
 
-			$hybridauth::$logger->info('d_social_login: set authentication_data '.serialize($authentication_data));
+			Hybrid_Auth::$logger->info('d_social_login: set authentication_data '.serialize($authentication_data));
 
 			//check by identifier
 			$customer_id = $this->model_module_d_social_login->getCustomerByIdentifier($this->setting['provider'], $this->setting['profile']['identifier']);
 
 			if($customer_id){
-				$hybridauth::$logger->info('d_social_login: getCustomerByIdentifier success.');
+				Hybrid_Auth::$logger->info('d_social_login: getCustomerByIdentifier success.');
 				//login
 				$this->model_module_d_social_login->login($customer_id);
 
@@ -150,13 +159,13 @@ class ControllerModuleDSocialLogin extends Controller {
 
 				$customer_id = $this->model_module_d_social_login->getCustomerByEmail($this->setting['profile']['email']);
 				if($customer_id){
-					$hybridauth::$logger->info('d_social_login: getCustomerByEmail success.');
+					Hybrid_Auth::$logger->info('d_social_login: getCustomerByEmail success.');
 				}
 			}
 
 
 			if(!$customer_id){
-				$hybridauth::$logger->info('d_social_login: no customer_id. creating customer_data');
+				Hybrid_Auth::$logger->info('d_social_login: no customer_id. creating customer_data');
 				//prepare customer data
 				$address = array();
 
@@ -190,7 +199,7 @@ class ControllerModuleDSocialLogin extends Controller {
 	            	'password'   => ''
 	            );
 
-				$hybridauth::$logger->info('d_social_login: set customer_data '.serialize($customer_data));
+				Hybrid_Auth::$logger->info('d_social_login: set customer_data '.serialize($customer_data));
 
 				//check if form required
 				$form = false;
@@ -203,21 +212,21 @@ class ControllerModuleDSocialLogin extends Controller {
 		      	}
 
 		   		if(!$form){
-		   			$hybridauth::$logger->info('d_social_login: adding customer with customer_data');
+		   			Hybrid_Auth::$logger->info('d_social_login: adding customer with customer_data');
 		   			$customer_data['password'] = $this->password();
 		   			$customer_id = $this->model_module_d_social_login->addCustomer($customer_data);
 		   		}else{
-		   			$hybridauth::$logger->info('d_social_login: need to use form');
+		   			Hybrid_Auth::$logger->info('d_social_login: need to use form');
 					$this->form($customer_data, $authentication_data);
 		   		}
 			}
 
 			if($customer_id){
-				$hybridauth::$logger->info('d_social_login: customer_id found');
+				Hybrid_Auth::$logger->info('d_social_login: customer_id found');
 				$authentication_data['customer_id'] = (int) $customer_id;
 
 				$this->model_module_d_social_login->addAuthentication($authentication_data);
-				$hybridauth::$logger->info('d_social_login: addAuthentication');
+				Hybrid_Auth::$logger->info('d_social_login: addAuthentication');
 				//login
 				$this->model_module_d_social_login->login($customer_id);
 
@@ -238,11 +247,12 @@ class ControllerModuleDSocialLogin extends Controller {
                          if (isset($adapter)){$adapter->logout();}
                          break;
                 case 7 : $error = "User not connected to the provider.";
+                         $adapter->logout();
                          break;
                 case 8 : $error = "Provider does not support this feature."; break;
             }
             if (isset($adapter)){$adapter->logout();}
-
+            
             $this->session->data['d_social_login_error'] = $error;
 
 			$error .= "\n\nHybridAuth Error: " . $e->getMessage();
@@ -267,7 +277,7 @@ class ControllerModuleDSocialLogin extends Controller {
 		$data['text_email'] = $this->language->get('text_email');
 		$data['text_firstname'] = $this->language->get('text_firstname');
 		$data['text_lastname'] = $this->language->get('text_lastname');
-		$data['text_phone'] = $this->language->get('text_phone');
+		$data['text_telephone'] = $this->language->get('text_telephone');
 		$data['text_address_1'] = $this->language->get('text_address_1');
 		$data['text_address_2'] = $this->language->get('text_address_1');
 		$data['text_city'] = $this->language->get('text_city');
@@ -283,7 +293,11 @@ class ControllerModuleDSocialLogin extends Controller {
 
 		$data['background_img'] = $this->setting['background_img'];
 		$data['background_color'] = $this->setting['providers'][ucfirst($this->setting['provider'])]['background_color'];
-
+		if($this->setting['iframe']){
+     		$data['iframe'] = $this->redirect;
+		}else{
+			$data['iframe'] = false;
+		}
 		$sort_order = array(); 
 		foreach ($this->setting['fields'] as $key => $value) {
 			if(isset($value['sort_order'])){
@@ -323,7 +337,12 @@ class ControllerModuleDSocialLogin extends Controller {
 		if($this->validate_email($customer_data['email'])){
 			$customer_id = $this->model_module_d_social_login->getCustomerByEmail($customer_data['email']);
 			if($customer_id){
-				$json['error']['email'] = $this->language->get('error_email_taken');
+                            if( $this->model_module_d_social_login->checkAuthentication($customer_id, $this->session->data['provider'])){
+                                $authentication_data['customer_id'] = (int) $customer_id;
+                                $this->model_module_d_social_login->addAuthentication($authentication_data);
+                            }else{
+                                $json['error']['email'] = $this->language->get('error_email_taken');
+                            }
 			}
 		}else{
 			
@@ -403,7 +422,7 @@ class ControllerModuleDSocialLogin extends Controller {
         }
 
         // set redirect address
-        if(isset($this->session->data['redirect'])){
+        if(isset($this->session->data['redirect']) && !strripos($this->session->data['redirect'],	'logout')){
         	$this->redirect = $this->session->data['redirect'];
         }else{
         	$this->redirect =  $this->url->link('account/account', '', 'SSL');
@@ -425,7 +444,7 @@ class ControllerModuleDSocialLogin extends Controller {
 		return $this->config->get('config_country_id');
 	}
 
-	public static function getCurrentUrl( $request_uri = true ) {
+	public  function getCurrentUrl( $request_uri = true ) {
 		if(
 			isset( $_SERVER['HTTPS'] ) && ( $_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1 )
 		|| 	isset( $_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https'
@@ -455,5 +474,57 @@ class ControllerModuleDSocialLogin extends Controller {
 		// return current url
 		return $url;
 	}
+ function dQuickcheckoutIndex($settings) {
+
+		  $this->setup();
+
+		  $this->language->load($this->route);
+		  $this->load->model($this->route);
+			   
+				$this->document->addStyle('catalog/view/theme/default/stylesheet/d_social_login/styles.css');
+		  $this->document->addScript('catalog/view/javascript/d_social_login/spin.min.js');
+				
+				$setting = $this->config->get('d_social_login_settings');
+ 
+				$data['heading_title'] = $this->language->get('heading_title');
+			   $data['button_sign_in'] = $this->language->get('button_sign_in');
+			   $data['size'] = 'icon';
+			   $data['islogged'] = $this->customer->isLogged();
+
+			   $providers = $setting['providers'];
+			   
+			   $sort_order = array(); 
+		  foreach ($providers as $key => $value) {
+		   if(isset($value['sort_order'])){
+				 $sort_order[$key] = $value['sort_order'];
+		   }
+			 }
+		  array_multisort($sort_order, SORT_ASC, $providers);
+			   $data['providers'] = $providers; 
+			   foreach($providers as $key => $val) {
+				$data['providers'][$key]['heading'] = $this->language->get('text_sign_in_with_'.$val['id']);
+			   }
+			   $data['error'] = false;
+			   if(isset($this->session->data['d_social_login_error'])){
+				$data['error'] = $this->session->data['d_social_login_error'];
+				unset($this->session->data['d_social_login_error']);
+			   }
+
+			   $this->session->data['redirect'] = ($setting['return_page_url']) ? $setting['return_page_url'] : $this->getCurrentUrl();
+			   
+			   //facebook fix
+			   unset($this->session->data['HA::CONFIG']);
+		  unset($this->session->data['HA::STORE']);
+
+		  $this->data = $data;
+
+				if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/module/d_social_login.tpl')) {
+		   $this->template = $this->config->get('config_template') . '/template/module/d_social_login.tpl' ;
+		  } else {
+		   $this->template = 'default/template/module/d_social_login.tpl' ;
+		  }
+
+		   return  $this->response->setOutput($this->render());  
+  }
 
 }

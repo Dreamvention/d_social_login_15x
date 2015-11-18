@@ -1,7 +1,7 @@
 <?php
 class ControllerModuleDSocialLogin extends Controller {
 	public $route  = 'module/d_social_login';
-	public $mbooth = 'mbooth_d_social_login_lite.xml';
+	public $mbooth = 'mbooth_d_social_login.xml';
 	public $module = 'd_social_login';
 	private $error = array(); 
 	
@@ -117,7 +117,7 @@ class ControllerModuleDSocialLogin extends Controller {
 		$this->data['text_fields_sort_order'] = $this->language->get('text_fields_sort_order');
 		$this->data['text_firstname'] = $this->language->get('text_firstname');
 		$this->data['text_lastname'] = $this->language->get('text_lastname');
-		$this->data['text_phone'] = $this->language->get('text_phone');
+		$this->data['text_telephone'] = $this->language->get('text_telephone');
 		$this->data['text_mask'] = $this->language->get('text_mask');
 		$this->data['text_address_1'] = $this->language->get('text_address_1');
 		$this->data['text_address_2'] = $this->language->get('text_address_2');
@@ -140,7 +140,7 @@ class ControllerModuleDSocialLogin extends Controller {
 		$this->data['text_sort_order'] = $this->language->get('text_sort_order');
 
 		$this->data['text_app_settings'] = $this->language->get('text_app_settings');
-
+  		$this->data['entry_iframe'] = $this->language->get('entry_iframe');
 		$this->data['text_image_manager'] = $this->language->get('text_image_manager');
 		$this->data['text_browse'] = $this->language->get('text_browse');
 		$this->data['text_clear'] = $this->language->get('text_clear');
@@ -199,6 +199,7 @@ class ControllerModuleDSocialLogin extends Controller {
 			$this->config->load($this->get_light_or_full_version());
 			$this->data['setting'] = $this->config->get('d_social_login_settings');
 		}
+  
 
 
 		$this->config->load($this->get_light_or_full_version());

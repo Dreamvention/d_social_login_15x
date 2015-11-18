@@ -44,6 +44,7 @@ $_['entry_layout']        = 'Layout:';
 $_['entry_position']      = 'Position:';
 $_['entry_status']        = 'Status:';
 $_['entry_sort_order']    = 'Sort Order:';
+$_['entry_iframe']              = 'Set store as background';
 
 $_['text_sort_order']     = 'Sort and activate social login buttons. You can also set the colors of the buttons and their color when the button is pushed. The color of the button will be used as the background color for the last popup screen:';
 $_['text_app_settings']   = 'App settings';
@@ -80,7 +81,7 @@ $_['text_background_color_active'] = 'on Push';
 $_['text_fields_sort_order'] = 'Sort and activate fields for the popup screen for the first social login action, which is the registration of a new customer. (email is not present because its activated by default) ';
 $_['text_firstname']      = 'First name';
 $_['text_lastname']       = 'Last name';
-$_['text_phone']          = 'Phone';
+$_['text_telephone']      = 'Phone';
 $_['text_mask']           = 'Mask<i class="icon-question" rel="tooltip" data-help="You can add a mask filter to the phone input field like this (999) 999-99-99. Leave empty is you do not want to use it."></i>';
 $_['text_address_1']      = 'Address 1';
 $_['text_address_2']      = 'Address 2';
@@ -230,7 +231,7 @@ $_['text_instructions_full'] ='
             <img src="view/image/d_social_login/facebook/6-settings-website.png" class="img-thumbnail img-responsive" />
             <li>Fill in the Site url and mobile site url and save</li>
             <img src="view/image/d_social_login/facebook/7-settings-website-save.png" class="img-thumbnail img-responsive" />
-            <div class="callout callout-warning bs-callout bs-callout-warning"><h4>Your Site URL</h4><p>'.HTTP_CATALOG.'</p><h4>Your Redirect URL for HTTPS</h4><p>'.HTTPS_CATALOG.'</p></div>
+            <div class="callout callout-warning bs-callout bs-callout-warning"><h4>Your Site URL</h4><p>'.HTTP_CATALOG.'</p><h4>Your Redirect URL for HTTPS still the same http (facebook conflict)</h4><p>'.HTTP_CATALOG.'</p></div>
             <img src="view/image/d_social_login/facebook/8-dashboard.png" class="img-thumbnail img-responsive" />
             <li>In the same page ask to show the App Secret</li>
             <li>Do not forget to activate the APP in the left manu - Status & Review and turn on the APP by sliding the bar to the right</li>
@@ -333,11 +334,11 @@ $_['text_instructions_full'] ='
           <h3 class="tab-title"><i class="fa fa-paypal"></i> Setup Paypal login button</h3>
           <div class="tab-body">
             <ol>
-            <li>Visit Paypal app developers page <a href="https://developer.paypal.com/webapps/developer/applications" target="_blank"> https://developer.paypal.com/webapps/developer/applications</a></li>
+             <li>Visit Paypal app developers page <a href="https://developer.paypal.com/developer/applications/" target="_blank"> https://developer.paypal.com/developer/applications/</a></li>
             <li>Login with your paypal account.</li>
             <li>Click Create App</li>
             <img src="view/image/d_social_login/paypal/01.png" class="img-thumbnail img-responsive" />
-            <li>Fill in the name. You should also have a sandbox developer account. If you do not have one, create one here <a href="https://developer.paypal.com/webapps/developer/applications/accounts">Sandbox accounts</a></li>
+            <<li>Fill in the name. You should also have a sandbox developer account. If you do not have one, create one here <a href="https://developer.paypal.com/developer/accounts/">Sandbox accounts</a></li>
             <li>Once the app is created, you will have a page with all the credentials. Checkbox the Login with paypal.</li>
             <img src="view/image/d_social_login/paypal/02.png" class="img-thumbnail img-responsive" />
             <li>Edit App redirect URLs: you must fill in App return URL (live) with the following data:</li>

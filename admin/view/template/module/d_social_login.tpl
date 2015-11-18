@@ -232,6 +232,17 @@
             //--></script>
 
           <div class="row">
+              <div class="col-sm-2 th" for="input_iframe">
+                  <div class="wrap-5"><?php echo $entry_iframe; ?></div>
+              </div>
+             <div class="col-sm-5">
+                  <div class="wrap-5">
+                       <input type="hidden" name="<?php echo $id;?>_settings[iframe]" value="0" />
+                      <input type="checkbox" name="<?php echo $id;?>_settings[iframe]" <?php echo (isset($setting['iframe']) && $setting['iframe'])? 'checked="checked"':'';?> value="1" id="input_iframe"/>
+                  </div>
+             </div>
+         </div>
+        <div class="row">
             <div class="col-sm-2 th">
               <div class="wrap-5"><?php echo $text_debug_mode; ?></div>
             </div>
@@ -483,5 +494,37 @@ function addModule() {
   
   module_row++;
 }
+
+  $('body').on('click', '#clear_debug_file', function(){ 
+      $.ajax( {
+        url: '<?php echo $clear_debug_file; ?>',
+        type: 'post',
+        dataType: 'json',
+        data: 'debug_file=<?php echo $debug_file; ?>',
+
+        beforeSend: function() {
+          $('#form').fadeTo('slow', 0.5);
+        },
+
+        complete: function() {
+          $('#form').fadeTo('slow', 1);   
+        },
+
+        success: function(json) {
+          $('.alert').remove();
+          console.log(json);
+
+          if(json['error']){
+            $('#debug .tab-body').prepend('<div class="alert alert-danger">' + json['error'] + '</div>')
+          }
+
+          if(json['success']){
+            $('#debug .tab-body').prepend('<div class="alert alert-success">' + json['success'] + '</div>')
+          } 
+        }
+      });
+    });
+
+
 //--></script> 
 <?php echo $footer; ?>
