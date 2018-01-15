@@ -232,7 +232,7 @@ abstract class BaseFacebook
    *
    * @var boolean
    */
-  protected $trustForwarded = false;
+  protected $trustForwarded = true;
 
   /**
    * Indicates if signed_request is allowed in query parameters.
