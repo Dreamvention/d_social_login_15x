@@ -170,6 +170,15 @@ class LinkedIn {
 	}
 
 	/**
+   * The class destructor.
+   *
+   * Explicitly clears LinkedIn object from memory upon destruction.
+	 */
+  public function __destruct() {
+    unset($this);
+	}
+
+	/**
 	 * Bookmark a job.
 	 *
 	 * Calling this method causes the current user to add a bookmark for the

@@ -17,7 +17,7 @@ class Hybrid_Providers_LinkedIn extends Hybrid_Provider_Model {
 
 	/**
 	 * Provider API Wrapper
-	 * @var LinkedIn
+	 * @var LinkedIn 
 	 */
 	public $api;
 
@@ -28,26 +28,10 @@ class Hybrid_Providers_LinkedIn extends Hybrid_Provider_Model {
 		if (!$this->config["keys"]["key"] || !$this->config["keys"]["secret"]) {
 			throw new Exception("Your application key and secret are required in order to connect to {$this->providerId}.", 4);
 		}
-
-		if (empty($this->config['fields'])) {
-			$this->config['fields'] = array(
-				'id',
-				'first-name',
-				'last-name',
-				'public-profile-url',
-				'picture-url',
-				'email-address',
-				'date-of-birth',
-				'phone-numbers',
-				'summary',
-				'positions'
-			);
-		}
-
 		if (!class_exists('OAuthConsumer', false)) {
-			require_once Hybrid_Auth::$config["path_libraries"] . "oauth/oauth.php";
+			require_once Hybrid_Auth::$config["path_libraries"] . "OAuth/OAuth.php";
 		}
-		require_once Hybrid_Auth::$config["path_libraries"] . "linkedin/linkedin.php";
+		require_once Hybrid_Auth::$config["path_libraries"] . "LinkedIn/LinkedIn.php";
 
 		$this->api = new LinkedIn(array('appKey' => $this->config["keys"]["key"], 'appSecret' => $this->config["keys"]["secret"], 'callbackUrl' => $this->endpoint));
 
@@ -70,7 +54,7 @@ class Hybrid_Providers_LinkedIn extends Hybrid_Provider_Model {
 			# redirect user to LinkedIn authorisation web page
 			Hybrid_Auth::redirect(LINKEDIN::_URL_AUTH . $response['linkedin']['oauth_token']);
 		} else {
-			throw new Exception("Authentication failed! {$this->providerId} returned an invalid Token in response: " . Hybrid_Logger::dumpData( $response ), 5);
+			throw new Exception("Authentication failed! {$this->providerId} returned an invalid Token.", 5);
 		}
 	}
 
@@ -103,7 +87,7 @@ class Hybrid_Providers_LinkedIn extends Hybrid_Provider_Model {
 			// set user as logged in
 			$this->setUserConnected();
 		} else {
-			throw new Exception("Authentication failed! {$this->providerId} returned an invalid Token in response: " . Hybrid_Logger::dumpData( $response ), 5);
+			throw new Exception("Authentication failed! {$this->providerId} returned an invalid Token.", 5);
 		}
 	}
 
@@ -112,17 +96,17 @@ class Hybrid_Providers_LinkedIn extends Hybrid_Provider_Model {
 	 */
 	function getUserProfile() {
 		try {
-			// https://developer.linkedin.com/docs/fields
-			$response = $this->api->profile('~:('. implode(',', $this->config['fields']) .')');
+			// http://developer.linkedin.com/docs/DOC-1061
+			$response = $this->api->profile('~:(id,first-name,last-name,public-profile-url,picture-url,email-address,date-of-birth,phone-numbers,summary)');
 		} catch (LinkedInException $e) {
-			throw new Exception("User profile request failed! {$this->providerId} returned an error: {$e->getMessage()}", 6, $e);
+			throw new Exception("User profile request failed! {$this->providerId} returned an error: $e", 6);
 		}
 
 		if (isset($response['success']) && $response['success'] === true) {
 			$data = @ new SimpleXMLElement($response['linkedin']);
 
 			if (!is_object($data)) {
-				throw new Exception("User profile request failed! {$this->providerId} returned an invalid xml data: " . Hybrid_Logger::dumpData( $data ), 6);
+				throw new Exception("User profile request failed! {$this->providerId} returned an invalid xml data.", 6);
 			}
 
 			$this->user->profile->identifier = (string) $data->{'id'};
@@ -133,22 +117,7 @@ class Hybrid_Providers_LinkedIn extends Hybrid_Provider_Model {
 			$this->user->profile->email = (string) $data->{'email-address'};
 			$this->user->profile->emailVerified = (string) $data->{'email-address'};
 
-			if ($data->{'positions'}) {
-        $this->user->profile->job_title = (string) $data->{'positions'}->{'position'}->{'title'};
-        $this->user->profile->organization_name = (string) $data->{'positions'}->{'position'}->{'company'}->{'name'};
-      }
-
-			if (isset($data->{'picture-url'})) {
-				$this->user->profile->photoURL = (string) $data->{'picture-url'};
-
-			} elseif (isset($data->{'picture-urls'})) {
-				// picture-urls::(original)
-				$this->user->profile->photoURL = (string) $data->{'picture-urls'}->{'picture-url'};
-
-			} else {
-				$this->user->profile->photoURL = "";
-			}
-
+			$this->user->profile->photoURL = (string) $data->{'picture-url'};
 			$this->user->profile->profileURL = (string) $data->{'public-profile-url'};
 			$this->user->profile->description = (string) $data->{'summary'};
 
@@ -164,16 +133,9 @@ class Hybrid_Providers_LinkedIn extends Hybrid_Provider_Model {
 				$this->user->profile->birthYear = (string) $data->{'date-of-birth'}->year;
 			}
 
-            if ($data->{'location'}) {
-                $this->user->profile->city = (string) $data->{'location'}->name;
-                if ($data->{'location'}->{'country'}) {
-                    $this->user->profile->country = (string) $data->{'location'}->{'country'}->code;
-                }
-            }
-
 			return $this->user->profile;
 		} else {
-			throw new Exception("User profile request failed! {$this->providerId} returned an invalid response: " . Hybrid_Logger::dumpData( $response ), 6);
+			throw new Exception("User profile request failed! {$this->providerId} returned an invalid response.", 6);
 		}
 	}
 
@@ -184,7 +146,7 @@ class Hybrid_Providers_LinkedIn extends Hybrid_Provider_Model {
 		try {
 			$response = $this->api->profile('~/connections:(id,first-name,last-name,picture-url,public-profile-url,summary)');
 		} catch (LinkedInException $e) {
-			throw new Exception("User contacts request failed! {$this->providerId} returned an error: {$e->getMessage()}", 0, $e);
+			throw new Exception("User contacts request failed! {$this->providerId} returned an error: $e");
 		}
 
 		if (!$response || !$response['success']) {
@@ -236,11 +198,11 @@ class Hybrid_Providers_LinkedIn extends Hybrid_Provider_Model {
 		try {
 			$response = $this->api->share('new', $parameters, $private);
 		} catch (LinkedInException $e) {
-			throw new Exception("Update user status update failed!  {$this->providerId} returned an error: {$e->getMessage()}", 0, $e);
+			throw new Exception("Update user status update failed!  {$this->providerId} returned an error: $e");
 		}
 
 		if (!$response || !$response['success']) {
-			throw new Exception("Update user status update failed! {$this->providerId} returned an error in response: " . Hybrid_Logger::dumpData( $response ));
+			throw new Exception("Update user status update failed! {$this->providerId} returned an error.");
 		}
 
 		return $response;
@@ -260,7 +222,7 @@ class Hybrid_Providers_LinkedIn extends Hybrid_Provider_Model {
 				$response = $this->api->updates('?type=SHAR&count=25');
 			}
 		} catch (LinkedInException $e) {
-			throw new Exception("User activity stream request failed! {$this->providerId} returned an error: {$e->getMessage()}", 0, $e);
+			throw new Exception("User activity stream request failed! {$this->providerId} returned an error: $e");
 		}
 
 		if (!$response || !$response['success']) {

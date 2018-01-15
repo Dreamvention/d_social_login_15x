@@ -92,7 +92,7 @@ class Hybrid_Provider_Adapter {
 
 			$this->wrapper = $this->config["wrapper"]["class"];
 		} else {
-			require_once Hybrid_Auth::$config["path_providers"] . strtolower($this->id) . ".php";
+			require_once Hybrid_Auth::$config["path_providers"] . $this->id . ".php";
 
 			$this->wrapper = "Hybrid_Providers_" . $this->id;
 		}
@@ -153,26 +153,11 @@ class Hybrid_Provider_Adapter {
 		# for default HybridAuth endpoint url hauth_login_start_url
 		# 	auth.start  required  the IDp ID
 		# 	auth.time   optional  login request timestamp
-		if (!isset($this->params["login_start"]) ) {
-			$this->params["login_start"] = $HYBRID_AUTH_URL_BASE . ( strpos($HYBRID_AUTH_URL_BASE, '?') ? '&' : '?' ) . "hauth.start={$this->id}&hauth.time={$this->params["hauth_time"]}";
-		}
+		$this->params["login_start"] = $HYBRID_AUTH_URL_BASE . ( strpos($HYBRID_AUTH_URL_BASE, '?') ? '&' : '?' ) . "hauth.start={$this->id}&hauth.time={$this->params["hauth_time"]}";
 
 		# for default HybridAuth endpoint url hauth_login_done_url
 		# 	auth.done   required  the IDp ID
-		if (!isset($this->params["login_done"]) ) {
-			$this->params["login_done"] = $HYBRID_AUTH_URL_BASE . ( strpos($HYBRID_AUTH_URL_BASE, '?') ? '&' : '?' ) . "hauth.done={$this->id}";
-		}
-
-		# workaround to solve windows live authentication since microsoft disallowed redirect urls to contain any parameters
-		# http://mywebsite.com/path_to_hybridauth/?hauth.done=Live will not work
-		if ($this->id=="Live") { 
-			$this->params["login_done"] = $HYBRID_AUTH_URL_BASE."live.php"; 
-		}
-
-		# Workaround to fix broken callback urls for the Facebook OAuth client
-		if ($this->adapter->useSafeUrls) {
-				$this->params['login_done'] = str_replace('hauth.done', 'hauth_done', $this->params['login_done']);
-		}
+		$this->params["login_done"] = $HYBRID_AUTH_URL_BASE . ( strpos($HYBRID_AUTH_URL_BASE, '?') ? '&' : '?' ) . "hauth.done={$this->id}";
 
 		if (isset($this->params["hauth_return_to"])) {
 			Hybrid_Auth::storage()->set("hauth_session.{$this->id}.hauth_return_to", $this->params["hauth_return_to"]);
@@ -188,12 +173,7 @@ class Hybrid_Provider_Adapter {
 		// move on
 		Hybrid_Logger::debug("Hybrid_Provider_Adapter::login( {$this->id} ), redirect the user to login_start URL.");
 
-		// redirect
-		if (empty($this->params["redirect_mode"])) {
-			Hybrid_Auth::redirect($this->params["login_start"]);	
-		} else {
-			Hybrid_Auth::redirect($this->params["login_start"],$this->params["redirect_mode"]);
-		}
+		Hybrid_Auth::redirect($this->params["login_start"]);
 	}
 
 	/**
@@ -239,7 +219,14 @@ class Hybrid_Provider_Adapter {
 			throw new Exception("Call to undefined function Hybrid_Providers_{$this->id}::$name().");
 		}
 
-    return call_user_func_array(array($this->adapter, $name), $arguments);
+		$counter = count($arguments);
+		if ($counter == 1) {
+			return $this->adapter->$name($arguments[0]);
+		} elseif ($counter == 2) {
+			return $this->adapter->$name($arguments[0], $arguments[1]);
+		} else {
+			return $this->adapter->$name();
+		}
 	}
 
 	/**
@@ -293,12 +280,6 @@ class Hybrid_Provider_Adapter {
 	function returnToCallbackUrl() {
 		// get the stored callback url
 		$callback_url = Hybrid_Auth::storage()->get("hauth_session.{$this->id}.hauth_return_to");
-
-		// if the user presses the back button in the browser and we already deleted the hauth_return_to from
-		// the session in the previous request, we will redirect to '/' instead of displaying a blank page.
-		if (!$callback_url) {
-			$callback_url = '/';
-		}
 
 		// remove some unneeded stored data
 		Hybrid_Auth::storage()->delete("hauth_session.{$this->id}.hauth_return_to");
